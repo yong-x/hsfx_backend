@@ -15,7 +15,7 @@ app.use(bodyParser.json()) //解析json类型请求体
 //app.use(bodyParser.urlencoded({ extended: true }) ) //解析form data类型请求体
 app.use(bodyParser.urlencoded({ extended: false }));  //不解析form data类型请求体，文件上传时为formdata请求体
 
-//CORS跨域请求配置
+//CORS跨域请求配置，请求头配置
 app.all('*', function (req, res, next) {
   console.log('hello world')
   res.header('Access-Control-Allow-Origin', '*'); //允许所有跨域请求
@@ -43,20 +43,7 @@ app.use('/trust',require('./routers/trust.js'));
 app.use('/',require('./routers/main.js'));
 
 
-// app.get('/6516165', (req, res) => {		
-// 	(async ()=>{
-// 		let sql = 'select phone, username from user where uid = ?'
-// 		let params = [1]
-// 		/*
-// 		await保证在async函数闭包内，await代码之后的代码不会异步执行，必须等到await操作得到结果才会继续往后执行。
-// 		但在async函数闭包外，不会等await得到结果就会往下执行，因此在async函数闭包外不能拿到await操作的结果。
-// 		*/
-// 		let s = await my_sql.ROW(sql,params);
-// 		console.log(s)
-// 	})()		
-// 	res.json({uid:1,uname:'张三'})
-// 	res.end()	
-// })
+
 
 app.use(function (req, res, next) {
   res.status(404).send("Sorry can't find that!")
