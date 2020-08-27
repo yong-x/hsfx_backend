@@ -10,14 +10,14 @@ var pool  = mysql.createPool( {
     multipleStatements : true  //是否允许执行多条sql语句
 } );
 //将结果封装为对象数组返回
-var row=( sql , ...params )=>{
+var row=( sql , params )=>{
     return new Promise(function(resolve,reject){
         pool.getConnection(function(err,connection){
             if(err){
                 reject(err);
                 return;
             }
-            connection.query( sql , params , function(error,res){
+           let query =  connection.query( sql , params , function(error,res){
                 connection.release();
                 if(error){
                     reject(error);
@@ -25,19 +25,21 @@ var row=( sql , ...params )=>{
                 }
                 resolve(res);
             });
+			console.log('当前执行=>')
+			console.error(query.sql);
         });
     });
 };
 
 //将结果封装为一个对象返回，如果有多个对象只返回第一个
-var first=( sql , ...params )=>{
+var first=( sql , params )=>{
     return new Promise(function(resolve,reject){
         pool.getConnection(function(err,connection){
             if(err){
                 reject(err);
                 return;
             }
-            connection.query( sql , params , function(error,res){
+            let query =connection.query( sql , params , function(error,res){
                 connection.release();
                 if(error){
                     reject(error);
@@ -45,18 +47,20 @@ var first=( sql , ...params )=>{
                 }
                 resolve( res[0] || null );
             });
+			console.log('当前执行=>')
+			console.error(query.sql);
         });
     });
 };
 //以原始形式返回单个查询结果
-var single=(sql , ...params )=>{
+var single=(sql , params )=>{
     return new Promise(function(resolve,reject){
         pool.getConnection(function(err,connection){
             if(err){
                 reject(err);
                 return;
             }
-            connection.query( sql , params , function(error,res){
+            let query =connection.query( sql , params , function(error,res){
                 connection.release();
                 if(error){
                     reject( error );
@@ -69,18 +73,20 @@ var single=(sql , ...params )=>{
                 }
                 resolve(null);
             });
+			console.log('当前执行=>')
+			console.error(query.sql);
         });
     });
 }
 //执行代码，以原始形式返回执行结果
-var execute=(sql , ...params )=>{
+var execute=(sql , params )=>{
     return new Promise(function(resolve,reject){
         pool.getConnection(function(err,connection){
             if(err){
                 reject(err);
                 return;
             }
-            connection.query( sql , params , function(error,res){
+            let query =connection.query( sql , params , function(error,res){
                 connection.release();
                 if(error){
                     reject(error);
@@ -88,6 +94,8 @@ var execute=(sql , ...params )=>{
                 }
                 resolve( res );
             });
+			console.error('当前执行=>')
+			console.error(query.sql);
         });
     });
 }

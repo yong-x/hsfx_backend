@@ -6,9 +6,9 @@ const my_sql = require('./module/my_sql.js')
 const app = express()
 const port = 8080
 
-//server.use(objMulter.any());
-//开放静态资源的访问，将以 /static/xxx开头的请求，在public目录下面去找对应的静态资源响应请求
-app.use('/static', express.static(path.join(__dirname, 'public')))
+
+//开放静态资源的访问，将以 /public/xxx开头的请求，在public目录下面去找对应的静态资源响应请求
+app.use('/public', express.static(path.join(__dirname, 'public')))
 //app.use(favicon(path.join(__dirname, '/public/img/favicon.ico')))//网站图标
 //请求体解析器配置
 app.use(bodyParser.json()) //解析json类型请求体
@@ -44,7 +44,7 @@ app.use('/',require('./routers/main.js'));
 
 
 
-
+/*错误请求配置*/
 app.use(function (req, res, next) {
   res.status(404).send("Sorry can't find that!")
 })
