@@ -48,7 +48,7 @@ var storage = multer.diskStorage({
 
 //multer参数三：可选，上传文件大小限制设置
 var limits = {
-    fieldSize: "2MB", //设置限制（可选）
+    fieldSize: "3MB", //设置限制（可选）
   }
   
 //图片上传中间件导出对象，接收任何name域的所有图片

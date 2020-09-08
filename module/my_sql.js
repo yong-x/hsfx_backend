@@ -6,7 +6,7 @@ var pool  = mysql.createPool( {
     host            : '127.0.0.1',
     user            : 'xy',
     password    : 'xy123456',
-    database     : 'hsfx_rent',
+    database     : 'hsfx_houserent',
     multipleStatements : true  //是否允许执行多条sql语句
 } );
 //将结果封装为对象数组返回

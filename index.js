@@ -4,7 +4,7 @@ const path=require('path')
 const my_sql = require('./module/my_sql.js')
 //const favicon = require('serve-favicon')
 const app = express()
-const port = 8080
+const port = 3000
 
 
 //开放静态资源的访问，将以 /public/xxx开头的请求，在public目录下面去找对应的静态资源响应请求
