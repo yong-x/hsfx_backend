@@ -16,7 +16,7 @@ router.post('/retrieve',(req,res)=>{ //按查询条件检索信息
 	let pageNumber = req.body.pageNumber
 	let pageSize = req.body.pageSize
 	pageNumber = parseInt(pageNumber)>0?parseInt(pageNumber):1
-	pageSize = parseInt(pageSize)>0?parseInt(pageSize):5
+	pageSize = parseInt(pageSize)>0?parseInt(pageSize):10
 	//console.log(tag+' + '+ min_price+' + '+max_price+' + '+start_time+' + '+end_time +' + '+pageNumber +' + '+pageSize)
 	//let sql = `select houseid,publisher_id,publish_time,price_monthly,house_address,imglist,taglist from house where true`;
 	let sql = `select houseid,publisher_uid,date_format(publish_time,'%Y-%m-%d  %H:%i:%s') as publish_time,price_monthly,area,layout,house_detail,house_address,imglist,taglist,username as publisher_username,phone as publisher_phone 
@@ -25,19 +25,19 @@ router.post('/retrieve',(req,res)=>{ //按查询条件检索信息
 	let params = []
 	if(min_price&&min_price.trim(' ').length>0){
 		sql+=` and price_monthly >= ?`
-		params.push(min_price.trim(' '))
+		params.push(parseFloat( min_price.trim(' ')))
 	}
 	if(max_price&&max_price.trim(' ').length>0){
 		sql+=` and price_monthly <= ?`
-		params.push(max_price.trim(' '))
+		params.push(parseFloat(max_price.trim(' ')))
 	}
 	if(min_size&&min_size.trim(' ').length>0){
 		sql+=` and area >= ?`
-		params.push(min_size.trim(' '))
+		params.push(parseFloat(min_size.trim(' ')))
 	}
 	if(max_size&&max_size.trim(' ').length>0){
 		sql+=` and area <= ?`
-		params.push(max_size.trim(' '))
+		params.push(parseFloat(max_size.trim(' ')))
 	}	
 	if(start_time&&start_time.trim(' ').length>0){
 		sql+=` and publish_time >= ?`
@@ -88,7 +88,7 @@ router.post('/retrieve',(req,res)=>{ //按查询条件检索信息
 
 router.post('/add',imgUploader,(req,res)=>{ //第一个中间件imgUploader保存图片，第二个中间件把数据存入数据库
 	console.log('收到上传请求')
-	//随图片一起上传的其它数据
+	//随图片一起上传的其它数据放在了req.body中
 	console.log(req.body)
 	console.log(req.files) //用户上传的图片信息数组
 	let publisher_uid = req.body.publisher_uid

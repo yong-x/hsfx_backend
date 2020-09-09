@@ -40,6 +40,7 @@ app.use('/user',require('./routers/user.js'));
 app.use('/house',require('./routers/house.js'));
 app.use('/demand',require('./routers/demand.js'));
 app.use('/trust',require('./routers/trust.js'));
+app.use('/trust_demand',require('./routers/trust_demand.js'));
 app.use('/',require('./routers/main.js'));
 
 
