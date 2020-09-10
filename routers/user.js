@@ -93,6 +93,75 @@ router.post('/register',(req,res)=>{
 	
 })
 
+router.post('/update',(req,res)=>{
+	
+	let uid = req.body.uid
+	let phone = req.body.phone
+	let username = req.body.username
+	let password = req.body.password
+	
+	;(async ()=>{
+		let sql=''
+		let params =[]
+		
+		if(phone&&phone.trim(' ').length===11){ //用户要更新手机号，需要进行唯一性查询检测
+			sql = 'select uid from user where phone = ?'
+			params = [phone]		
+			let user = await my_sql.FIRST(sql,params)
+			if(user && user.uid != uid ){
+				res.json(
+				{
+					meta:{code: 201,msg:'该手机号已经被他人注册'},
+					data:{}
+				})
+				return
+			}
+		}
+		
+		sql = 'update user set uid =?'
+		params = [uid]
+		if(username && username.trim(' ').length>0){
+			sql+=',username=?'
+			params.push(username.trim(' '))
+		}
+		if(phone && phone.trim(' ').length===11){
+			sql+=',phone=?'
+			params.push(phone.trim(' '))
+		}
+		if(password && password.trim(' ').length>0){
+			sql+=',password=?'
+			params.push(password.trim(' '))
+		}
+		sql+=' where uid = ?'
+		params.push(uid)
+		
+		let r = await my_sql.EXECUTE(sql,params)
+		console.log(JSON.stringify(r))
+		if(r.affectedRows>0){
+			params.uid = r.insertId
+			res.json(
+			{
+				meta:{code: 200,msg:'更新用户成功'},
+				data:{user: params}
+			})
+			return
+		}else{
+			res.json(
+			{
+				meta:{code: 202,msg:'服务器异常，更新失败'},
+				data:{user: params}
+			})
+			return
+		}
+		
+		
+		
+	})()
+	
+	
+})
+
+
 router.get('/adduser',(req,res)=>{
     res.json({name:'user子路由'})
 })

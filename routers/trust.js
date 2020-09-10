@@ -48,13 +48,13 @@ router.post('/retrieve',(req,res)=>{
 	
 	;(async ()=>{
 		let trustList = await my_sql.ROW(sql ,params )
-		//console.log('检索结果原始数据')		
-		//console.log(trustList)
+		console.log('检索结果原始数据')		
+		console.log(trustList)
 		
 		trustList.forEach((trust,index)=>{
 			trust.imglist = trust.imglist.trim(',').split(',')
-			trust.edu_service = trust.edu_service.trim(' ').split(' ')
-			trust.food_service = trust.food_service.trim(' ').split(' ')
+			trust.edu_service = trust.edu_service.trim(',').split(',')
+			trust.food_service = trust.food_service.trim(',').split(',')
 		})
 		console.log('检索结果加工后数据')
 		console.log(trustList)

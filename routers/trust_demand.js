@@ -79,8 +79,45 @@ router.post('/retrieve',(req,res)=>{
 	
 })
 
-
-
+/*添加托管需求*/
+router.post('/add',(req,res)=>{
+	console.log('req.body===> ',req.body)
+	let publisher_uid = req.body.publisher_uid
+	let trustdemand_title = req.body.trustdemand_title
+	let childage = req.body.childage
+	let price_monthly = req.body.price_monthly
+	let trustdemand_time = req.body.trustdemand_time
+	let trustdemand_address = req.body.trustdemand_address
+	let edu_service = req.body.edu_service						
+	let food_service = req.body.food_service
+	let trustdemand_detail = req.body.trustdemand_detail
+	let publish_time = new Date().toLocaleString('chinese', { hour12: false })
+	
+	;(async ()=>{
+		let sql = 'INSERT INTO trustdemand SET ?'
+		let params = {publisher_uid,trustdemand_title,childage,price_monthly,trustdemand_time,trustdemand_address,edu_service,food_service,trustdemand_detail,publish_time}
+				
+		let r = await my_sql.EXECUTE(sql,params)
+		console.log(JSON.stringify(r))
+		if(r.affectedRows>0){
+			params.uid = r.insertId
+			res.json(
+			{
+				meta:{code: 200,msg:'添加托管需求信息成功'},
+				data:{}
+			})
+			return
+		}else{
+			res.json(
+			{
+				meta:{code: 201,msg:'服务器异常，添加失败'},
+				data:{}
+			})
+			return
+		}		
+	})()
+	
+})
 
 
 
