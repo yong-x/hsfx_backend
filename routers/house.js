@@ -1,10 +1,12 @@
 const app = require('express');
 const router = app.Router();
 const my_sql = require('../module/my_sql.js')
-//const mysql = require('mysql')
+const fs=require('fs')
+const path=require('path')
 const imgUploader = require('../module/imgUploader.js') //自定义图片上传中间件，用于把图片保存到服务器，然后数据域放到req中交给下一个中间件处理
 router.post('/retrieve',(req,res)=>{ //按查询条件检索信息
 	console.log('req.body===> ',req.body)
+	let publisher_uid = req.body.publisher_uid
 	let tag = req.body.tag
 	let address = req.body.address
 	let min_price = req.body.min_price
@@ -23,6 +25,10 @@ router.post('/retrieve',(req,res)=>{ //按查询条件检索信息
 	from house t1 LEFT OUTER JOIN user t2 ON(t1.publisher_uid = t2.uid) where true`
 	
 	let params = []
+	if(publisher_uid){
+		sql+=` and publisher_uid = ?`
+		params.push(publisher_uid)
+	}
 	if(min_price&&min_price.trim(' ').length>0){
 		sql+=` and price_monthly >= ?`
 		params.push(parseFloat( min_price.trim(' ')))
@@ -72,7 +78,7 @@ router.post('/retrieve',(req,res)=>{ //按查询条件检索信息
 		
 		houseList.forEach((house,index)=>{
 			house.imglist = house.imglist.trim(',').split(',')
-			house.taglist = house.taglist.trim(',').split(',')
+			house.taglist = house.taglist.trim(',').trim(' ').split(',')
 		})
 		console.log('检索结果加工后数据')
 		console.log(houseList)	
@@ -98,7 +104,7 @@ router.post('/add',imgUploader,(req,res)=>{ //第一个中间件imgUploader保�
 	let area = req.body.area
 	let layout = req.body.layout
 	let house_detail = req.body.house_detail
-	let taglist = req.body.taglist.replace(/\s+/g,',').trim(',')
+	let taglist = req.body.taglist.replace(/\s+/g,',').trim(',').trim(' ')
 	let imglist = ''
 	req.files.forEach((file,index)=>{
 		imglist += (index===0?'':',') + '/public/upload/'+ publisher_uid+'/'+file.filename
@@ -132,10 +138,116 @@ router.post('/add',imgUploader,(req,res)=>{ //第一个中间件imgUploader保�
 	
 })
 
-
-router.get('/addhouse',(req,res)=>{
-    res.json({name:'house子路由'})
+router.post('/update',(req,res)=>{ //更新发布的房源信息，暂不支持修改图片
+	console.log('收到更新请求')	
+	console.log(req.body)	
+	let publisher_uid = req.body.publisher_uid
+	let publish_time = new Date().toLocaleString('chinese', { hour12: false });
+	let price_monthly = req.body.price_monthly
+	let house_address = req.body.house_address
+	let area = req.body.area
+	let layout = req.body.layout
+	let house_detail = req.body.house_detail
+	let taglist = req.body.taglist.replace(/\s+/g,',').trim(',').trim(' ')
+	let houseid = req.body.houseid
+	// let imglist = ''
+	// req.files.forEach((file,index)=>{
+	// 	imglist += (index===0?'':',') + '/public/upload/'+ publisher_uid+'/'+file.filename
+	// })
+	;(async()=>{
+		sql = 'update house set publisher_uid = ?, publish_time = ?, price_monthly = ?,house_address = ?,area = ?,layout = ?,house_detail = ?,taglist = ? WHERE houseid = ?'		
+		params = [publisher_uid,publish_time,price_monthly,house_address,area,layout,house_detail,taglist,houseid]
+		
+		let r = await my_sql.EXECUTE(sql,params)
+		console.log(JSON.stringify(r))
+		if(r.affectedRows>0){
+			params.uid = r.insertId
+			res.json(
+			{
+				meta:{code: 200,msg:'更新成功'},
+				data:{}
+			})
+			return
+		}else{
+			res.json(
+			{
+				meta:{code: 201,msg:'服务器异常，更新失败'},
+				data:{}
+			})
+			return
+		}
+	})();	
 })
+
+router.post('/delete',(req,res)=>{
+	
+	console.log('req.body===> ',req.body)
+	
+	let houseid = req.body.houseid
+	let publisher_uid = req.body.uid
+	if(!houseid || !publisher_uid){
+		res.json(
+		{
+			meta:{code: 201,msg:'参数错误'},
+			data:{}
+		})
+		return
+	}
+	
+	let sql = ''
+	let params = [houseid,publisher_uid]
+	
+	;(async ()=>{
+		//先查询出房屋图片列表，当数据库中删除掉该条数据后才删除图片文件
+		sql = 'select imglist from house where houseid=? and publisher_uid=?'
+		let houselist = await my_sql.ROW(sql ,params )
+		console.log(houselist[0].imglist)
+		let imglist = houselist[0].imglist.trim(',').split(',')
+		
+		//从数据库进行删除操作
+		sql = "delete from house where houseid=? and publisher_uid=?"
+		let r = await my_sql.EXECUTE(sql,params)
+		console.log(JSON.stringify(r))
+		if(r.affectedRows>0){
+			params.uid = r.insertId
+			res.json(
+			{
+				meta:{code: 200,msg:'删除成功'},
+				data:{}
+			})
+			//数据库该条数据删除成功后，再删除图片文件
+			imglist.forEach(imgUrl=>{				
+				fs.unlink(path.join(__dirname,'../',imgUrl),function(error){
+				    if(error){
+				        console.log(error);
+				        return false;
+				    }
+				    console.log('删除文件'+imgUrl+'成功');
+				})	
+			})													
+			return
+		}else{
+			res.json(
+			{
+				meta:{code: 202,msg:'服务器异常，删除失败'},
+				data:{}
+			})
+			return
+		}
+		
+		
+		
+		
+	})()
+	
+	
+	
+	
+	
+	
+})
+
+
 
 
 module.exports = router;
