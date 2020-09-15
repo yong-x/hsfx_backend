@@ -4,6 +4,7 @@ const my_sql = require('../module/my_sql.js')
 const fs=require('fs')
 const path=require('path')
 const imgUploader = require('../module/imgUploader.js') //自定义图片上传中间件，用于把图片保存到服务器，然后数据域放到req中交给下一个中间件处理
+
 router.post('/retrieve',(req,res)=>{ //按查询条件检索信息
 	console.log('req.body===> ',req.body)
 	let publisher_uid = req.body.publisher_uid
@@ -77,8 +78,8 @@ router.post('/retrieve',(req,res)=>{ //按查询条件检索信息
 		console.log(houseList)
 		
 		houseList.forEach((house,index)=>{
-			house.imglist = house.imglist.trim(',').split(',')
-			house.taglist = house.taglist.trim(',').trim(' ').split(',')
+			house.imglist = house.imglist.replace(/^,+|,+$/gi,'').split(',')
+			house.taglist = house.taglist.trim(',').replace(/^,+|,+$/gi,'').split(',')
 		})
 		console.log('检索结果加工后数据')
 		console.log(houseList)	
@@ -198,7 +199,7 @@ router.post('/delete',(req,res)=>{
 	let params = [houseid,publisher_uid]
 	
 	;(async ()=>{
-		//先查询出房屋图片列表，当数据库中删除掉该条数据后才删除图片文件
+		//先查询出图片列表，当数据库中删除掉该条数据后才从文件夹删除图片文件
 		sql = 'select imglist from house where houseid=? and publisher_uid=?'
 		let houselist = await my_sql.ROW(sql ,params )
 		console.log(houselist[0].imglist)
@@ -208,8 +209,7 @@ router.post('/delete',(req,res)=>{
 		sql = "delete from house where houseid=? and publisher_uid=?"
 		let r = await my_sql.EXECUTE(sql,params)
 		console.log(JSON.stringify(r))
-		if(r.affectedRows>0){
-			params.uid = r.insertId
+		if(r.affectedRows>0){			
 			res.json(
 			{
 				meta:{code: 200,msg:'删除成功'},
@@ -235,16 +235,7 @@ router.post('/delete',(req,res)=>{
 			return
 		}
 		
-		
-		
-		
-	})()
-	
-	
-	
-	
-	
-	
+	})()	
 })
 
 

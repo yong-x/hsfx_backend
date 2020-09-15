@@ -6,10 +6,14 @@ const my_sql = require('../module/my_sql.js')
 router.post('/retrieve',(req,res)=>{
 	console.log('req.body===> ',req.body)
 	
+	let publisher_uid = req.body.publisher_uid
 	let title = req.body.title
 	let foodCondition = req.body.foodCondition
 	let min_price = req.body.min_price
 	let max_price = req.body.max_price
+	let start_time = req.body.start_time
+	let end_time = req.body.end_time
+	
 	let address = req.body.address
 	
 	let pageNumber = req.body.pageNumber
@@ -22,6 +26,10 @@ router.post('/retrieve',(req,res)=>{
 	from trustdemand t1 LEFT OUTER JOIN user t2 ON(t1.publisher_uid = t2.uid) where true`
 	
 	let params = []
+	if(publisher_uid){
+		sql+=` and publisher_uid = ?`
+		params.push(publisher_uid)
+	}
 	if(min_price&&min_price.trim(' ').length>0){
 		sql+=` and price_monthly >= ?`
 		params.push(parseFloat(min_price.trim(' ')) )
@@ -30,6 +38,17 @@ router.post('/retrieve',(req,res)=>{
 		sql+=` and price_monthly <= ?`
 		params.push(parseFloat( max_price.trim(' ')))
 	}
+	////时间区间选项
+	if(start_time&&start_time.trim(' ').length>0){
+		sql+=` and publish_time >= ?`
+		params.push(start_time.trim(' '))
+	}
+	if(end_time&&end_time.trim(' ').length>0){
+		sql+=` and publish_time <= ?`
+		params.push(end_time.trim(' '))
+	}
+	
+	
 	if(title&&title.trim(' ').length>0){
 		sql+=` and trustdemand_title like '%`+title.trim(' ')+`%'`		
 	}
@@ -119,7 +138,89 @@ router.post('/add',(req,res)=>{
 	
 })
 
+/*更新托管需求*/
+router.post('/update',(req,res)=>{
+	console.log('收到更新请求')
+	console.log('req.body===> ',req.body)
+	let publisher_uid = req.body.publisher_uid
+	let trustdemand_title = req.body.trustdemand_title
+	let childage = req.body.childage
+	let price_monthly = req.body.price_monthly
+	let trustdemand_time = req.body.trustdemand_time
+	let trustdemand_address = req.body.trustdemand_address
+	let edu_service = req.body.edu_service						
+	let food_service = req.body.food_service
+	let trustdemand_detail = req.body.trustdemand_detail
+	let publish_time = new Date().toLocaleString('chinese', { hour12: false })
+	let trustdemandid = req.body.trustdemandid
+	
+	;(async()=>{
+		sql = `UPDATE trustdemand 
+			   SET trustdemand_title=?,childage=?,price_monthly=?,trustdemand_time=?,trustdemand_address=?,edu_service=?,food_service=?,trustdemand_detail=?,publish_time=?
+			   WHERE trustdemandid = ?`	
+		params = [trustdemand_title,childage,price_monthly,trustdemand_time,trustdemand_address,edu_service,food_service,trustdemand_detail,publish_time,trustdemandid]
+		
+		let r = await my_sql.EXECUTE(sql,params)
+		console.log(JSON.stringify(r))
+		if(r.affectedRows>0){
+			res.json(
+			{
+				meta:{code: 200,msg:'更新成功'},
+				data:{}
+			})
+			return
+		}else{
+			res.json(
+			{
+				meta:{code: 201,msg:'服务器异常，更新失败'},
+				data:{}
+			})
+			return
+		}
+	})();	
+		
+})
 
-
+/*删除托管需求*/
+router.post('/delete',(req,res)=>{
+	console.log('req.body===> ',req.body)
+	
+	let trustdemandid = req.body.trustdemandid
+	let publisher_uid = req.body.uid
+	
+	if(!trustdemandid || !publisher_uid){
+		res.json(
+		{
+			meta:{code: 201,msg:'参数错误'},
+			data:{}
+		})
+		return
+	}
+	
+	let sql = ''
+	let params = [trustdemandid,publisher_uid]
+	
+	;(async ()=>{		
+		//从数据库进行删除操作
+		sql = "delete from trustdemand where trustdemandid=? and publisher_uid=?"
+		let r = await my_sql.EXECUTE(sql,params)
+		console.log(JSON.stringify(r))
+		if(r.affectedRows>0){			
+			res.json(
+			{
+				meta:{code: 200,msg:'删除成功'},
+				data:{}
+			})																
+			return
+		}else{
+			res.json(
+			{
+				meta:{code: 202,msg:'服务器异常，删除失败'},
+				data:{}
+			})
+			return
+		}		
+	})()	
+})
 
 module.exports = router;
